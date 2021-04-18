@@ -28,6 +28,7 @@ class CreateSymbols: public QObject
    Q_OBJECT
 public:
     CreateSymbols(QObject* parent, QString DeviceName_, std::map<QString, DataStorage> &m_data_);
+    //Call at last, after XmReader
     void PublishParameters();
 
 
