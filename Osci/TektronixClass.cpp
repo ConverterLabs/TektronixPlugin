@@ -239,6 +239,7 @@ QStringList Tektronix::readOutPre(void){
         qDebug()  << "VISA error code:" << status;
     }
     QString Answer(QString::fromLocal8Bit((const char*) buffer,retCount));
+
     auto AnswerParts = Answer.simplified().split(";");
 
     return AnswerParts;

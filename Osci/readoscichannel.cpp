@@ -20,6 +20,7 @@
 *******************************************************************************/
 
 #include "readoscichannel.h"
+#include "QThread"
 
 ReadOsciChannel::ReadOsciChannel( QString DeviceName_, MessengerClass &messenger_, Tektronix &Osci_ ,  std::map<QString, DataStorage>& data):
     m_data(data),
@@ -40,7 +41,38 @@ void ReadOsciChannel::ReadChannel(int Channel)
         auto ID = DeviceName + "::Data::Source";
         this->Osci.write("DATA:SOURCE "+ ChanT,ID);
         this->Osci.write("HEADer 1","");
+        bool headerchanged = false;
+        bool err = false;
+        while(!headerchanged && !err)
+        {
+            auto retval = this->Osci.read("HEADer?","",err);
+            if(!err)
+            {
+                if(retval.size())
+                {
+                    if(retval.at(0).contains("1"))
+                        headerchanged = 1;
+                    else
+                        QThread::msleep(10);
+                }
+                else
+                {
+                    messenger.Info("Header couldn't be changed to HEADer 1");
+                    return;
+                }
+            }
+            else
+                 messenger.Info("Error asking for HEADer?");
+        }
+
         QStringList answer = this->Osci.readOutPre();
+        uint32_t counter = 0;
+        while(!answer.size() && counter < 10)
+        {
+            QThread::msleep(100);
+            answer = this->Osci.readOutPre();
+        }
+
         this->Osci.write("HEADer 0","");
 
         std::map<QString, QString> AnswerMap;

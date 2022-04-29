@@ -121,8 +121,7 @@ void WorkClass::process()
     // First Loop
     while(!Abort())
     {
-        QTime CycleTimer;
-        CycleTimer.start();
+
 
         //Send States to Oszi
         if(SendQueque.size())
@@ -194,6 +193,7 @@ void WorkClass::process()
             {
                 ChannelReader.ReadChannel(Channel);
                 Channel++;
+                QThread::msleep(100);
             }
             QString CounterID = DeviceName + "::ChannelRead::Counter";
             uint32_t tmp = m_data[CounterID].GetUInt32_tData();
@@ -201,12 +201,12 @@ void WorkClass::process()
             m_data[CounterID].SetDataKeepType(tmp);
             this->MessageSender("set", CounterID,  m_data[CounterID]);
             ReadStreams = 0;
-
         }
 
-
+        QTime CycleTimer;
+        CycleTimer.start();
        //always use a sleep in this loop or the cpu load will be massive
-       while( CycleTimer.elapsed() < 100)
+       while( CycleTimer.elapsed() < 200)
        {
            //process Events
            QCoreApplication::processEvents();
@@ -217,8 +217,8 @@ void WorkClass::process()
     this->Osci.CloseConnection();
     GetMessenger()->Info("Scope Connection Closed");
 
-    if(Error)
-        emit MessageSender("CloseProject",objectName(), InterfaceData());
+    //if(Error)
+    //    emit MessageSender("CloseProject",objectName(), InterfaceData());
 
 
     while(!abort)
